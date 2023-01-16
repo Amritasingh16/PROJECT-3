@@ -1,0 +1,23 @@
+{
+  "name": "urlshortner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/21tarun/urlShortner.git"
+  },
+  "author": "Amir, Amrita, Tarun",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/21tarun/urlShortner/issues"
+  },
+  "homepage": "https://github.com/21tarun/urlShortner#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^6.8.3"
+  }
+}
