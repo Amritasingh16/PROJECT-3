@@ -3,6 +3,8 @@ const urlModel = require('../models/urlModel')
 const isUrl = require("is-valid-http-url");
 const shortId = require('shortid')
 
+//==========================================CREATING URL==========================================//
+
 
 const createUrl = async function (req, res) {
     try {
@@ -29,39 +31,34 @@ const createUrl = async function (req, res) {
             return res.status(200).send({ status: true, data: alreadyPresent })
         }
     }
-    catch(err){
-        res.status(500).send({status:false,message:err.message})
+    catch (err) {
+        res.status(500).send({ status: false, message: err.message })
     }
 
 }
+
+//==========================================GETTING URL===============================================//
+
 
 
 const getUrl = async function (req, res) {
-    try{
-        const urlCode= req.params.urlCode
-        if(!urlCode) return res.status(400).send({status:false,message:"provide urlCode"})
-        if(!shortId.isValid(urlCode)) return res.status(400).send({status:false, message:"urlCode invalid"})
+    try {
+        const urlCode = req.params.urlCode
+        if (!urlCode) return res.status(400).send({ status: false, message: "provide urlCode" })
+        if (!shortId.isValid(urlCode)) return res.status(400).send({ status: false, message: "urlCode invalid" })
 
-        const isPresentUrl= await urlModel.findOne({urlCode:urlCode}).select({longUrl:1,_id:0})
-        if(!isPresentUrl) return res.status(404).send({status:false,message:"(url not found) you can not redirect to longUrl with this urlCode"})
-    
-        res.status(302).send({status:true,data:isPresentUrl})
+        const isPresentUrl = await urlModel.findOne({ urlCode: urlCode }).select({ longUrl: 1, _id: 0 })
+        if (!isPresentUrl) return res.status(404).send({ status: false, message: "(url not found) you can not redirect to longUrl with this urlCode" })
+
+        res.status(302).send({ status: true, data: isPresentUrl })
 
     }
-    catch(err){
-        res.status(500).send({status:false,message:err.message})
+    catch (err) {
+        res.status(500).send({ status: false, message: err.message })
     }
-    
+
 
 }
-
-
-
-
-
-
-
-
 
 module.exports.createUrl = createUrl
 module.exports.getUrl = getUrl
