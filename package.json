@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/21tarun/urlShortner#readme",
   "dependencies": {
-    "axios": "^1.2.2",
     "express": "^4.18.2",
     "is-valid-http-url": "^1.0.3",
     "mongoose": "^6.8.3",
