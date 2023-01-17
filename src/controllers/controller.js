@@ -44,13 +44,12 @@ const createUrl = async function (req, res) {
 const getUrl = async function (req, res) {
     try {
         const urlCode = req.params.urlCode
-        if (!urlCode) return res.status(400).send({ status: false, message: "provide urlCode" })
         if (!shortId.isValid(urlCode)) return res.status(400).send({ status: false, message: "urlCode invalid" })
 
         const isPresentUrl = await urlModel.findOne({ urlCode: urlCode }).select({ longUrl: 1, _id: 0 })
         if (!isPresentUrl) return res.status(404).send({ status: false, message: "(url not found) you can not redirect to longUrl with this urlCode" })
 
-        res.status(302).send({ status: true, data: isPresentUrl })
+        res.status(302).redirect(isPresentUrl.longUrl)
 
     }
     catch (err) {
