@@ -20,6 +20,8 @@
     "express": "^4.18.2",
     "is-valid-http-url": "^1.0.3",
     "mongoose": "^6.8.3",
-    "shortid": "^2.2.16"
+    "redis": "^3.1.2",
+    "shortid": "^2.2.16",
+    "util": "^0.12.5"
   }
 }

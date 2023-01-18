@@ -2,6 +2,38 @@ const mongoose = require('mongoose')
 const urlModel = require('../models/urlModel')
 const isUrl = require("is-valid-http-url");
 const shortId = require('shortid')
+const redis=require('redis')
+const {promisify}=require('util')
+
+
+
+// create connection to redis with the help javascript redis module
+
+const redisClient =redis.createClient(
+    15233,
+    "redis-15233.c212.ap-south-1-1.ec2.cloud.redislabs.com",
+    {no_ready_check:true}
+)
+redisClient.auth("PQmLfPPDFmkIgDvm4NV7yqYTaCJfNjpV",function(err){
+    if(err) throw err
+})
+redisClient.on("connect",async function(){
+    console.log("connected to Redis")
+})
+
+
+// prepare function so that our redis module method return response in promise object, not by the call back function
+
+const SET_ASYNC =promisify(redisClient.SET).bind(redisClient)
+const GET_ASYNC =promisify(redisClient.GET).bind(redisClient)
+const SETEX_ASYNC=promisify(redisClient.SETEX).bind(redisClient)
+
+
+
+
+
+
+
 
 //==========================================CREATING URL==========================================//
 
@@ -25,6 +57,7 @@ const createUrl = async function (req, res) {
             data.urlCode = urlcode
 
             const saveData = await urlModel.create(data)
+            
             return res.status(201).send({ status: true, data: data })
         }
         else {
@@ -46,11 +79,20 @@ const getUrl = async function (req, res) {
         const urlCode = req.params.urlCode
         if (!shortId.isValid(urlCode)) return res.status(400).send({ status: false, message: "urlCode invalid" })
 
-        const isPresentUrl = await urlModel.findOne({ urlCode: urlCode }).select({ longUrl: 1, _id: 0 })
-        if (!isPresentUrl) return res.status(404).send({ status: false, message: "(url not found) you can not redirect to longUrl with this urlCode" })
-
-        res.status(302).redirect(isPresentUrl.longUrl)
-
+        const cacheData =await GET_ASYNC(`${urlCode}`)
+        
+        if(cacheData) {
+            console.log("I am in cache")
+            return res.status(302).redirect(cacheData)
+        }
+        else{
+            console.log("i am not in cache")
+            const isPresentUrl = await urlModel.findOne({ urlCode: urlCode }).select({ longUrl: 1, _id: 0 })
+            if (!isPresentUrl) return res.status(404).send({ status: false, message: "(url not found) you can not redirect to longUrl with this urlCode" })
+            await SETEX_ASYNC(`${urlCode}`,20,JSON.stringify(isPresentUrl.longUrl))
+            res.status(302).redirect(isPresentUrl.longUrl)
+        }
+        
     }
     catch (err) {
         res.status(500).send({ status: false, message: err.message })
