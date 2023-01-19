@@ -45,24 +45,35 @@ const createUrl = async function (req, res) {
         if (!longUrl) return res.status(400).send({ status: false, message: "url is required" })
         if (!isUrl(longUrl)) return res.status(400).send({ status: false, message: "url invalid" })
 
-        const alreadyPresent = await urlModel.findOne({ longUrl: longUrl }).select({ longUrl: 1, shortUrl: 1, urlCode: 1, _id: 0 })
-        if (!alreadyPresent) {
-            const urlcode = shortId.generate()
-            let baseUrl = "http://localhost:3000/"
-            const shortenUrl = baseUrl + urlcode
+        const cacheData= await GET_ASYNC(`${longUrl}`)
+        if(!cacheData){
+            const alreadyPresent = await urlModel.findOne({ longUrl: longUrl }).select({ longUrl: 1, shortUrl: 1, urlCode: 1, _id: 0 })
+            if (!alreadyPresent) {
+                const urlcode = shortId.generate()
+                let baseUrl = "http://localhost:3000/"
+                const shortenUrl = baseUrl + urlcode
+    
+                const data = {}
+                data.longUrl = longUrl
+                data.shortUrl = shortenUrl
+                data.urlCode = urlcode
+                
+                res.status(201).send({ status: true, data: data })
+                await urlModel.create(data)
+                SETEX_ASYNC(`${longUrl}`,20,JSON.stringify(data))
+            }
+            else {
+                res.status(200).send({ status: true, data: alreadyPresent })
+                SETEX_ASYNC(`${longUrl}`,20,JSON.stringify(alreadyPresent))
 
-            const data = {}
-            data.longUrl = longUrl
-            data.shortUrl = shortenUrl
-            data.urlCode = urlcode
+            }
+        }
+        else{
+            return res.status(200).send({status:true,data:JSON.parse(cacheData)})
+        }
 
-            const saveData = await urlModel.create(data)
-            
-            return res.status(201).send({ status: true, data: data })
-        }
-        else {
-            return res.status(200).send({ status: true, data: alreadyPresent })
-        }
+        
+        
     }
     catch (err) {
         res.status(500).send({ status: false, message: err.message })
@@ -89,8 +100,9 @@ const getUrl = async function (req, res) {
             console.log("i am not in cache")
             const isPresentUrl = await urlModel.findOne({ urlCode: urlCode }).select({ longUrl: 1, _id: 0 })
             if (!isPresentUrl) return res.status(404).send({ status: false, message: "(url not found) you can not redirect to longUrl with this urlCode" })
-            await SETEX_ASYNC(`${urlCode}`,20,JSON.stringify(isPresentUrl.longUrl))
             res.status(302).redirect(isPresentUrl.longUrl)
+            await SETEX_ASYNC(`${urlCode}`,20,JSON.stringify(isPresentUrl.longUrl))
+            
         }
         
     }
