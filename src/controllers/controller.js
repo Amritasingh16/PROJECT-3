@@ -60,11 +60,11 @@ const createUrl = async function (req, res) {
                 
                 res.status(201).send({ status: true, data: data })
                 await urlModel.create(data)
-                SETEX_ASYNC(`${longUrl}`,20,JSON.stringify(data))
+                SETEX_ASYNC(`${longUrl}`,86400,JSON.stringify(data))
             }
             else {
                 res.status(200).send({ status: true, data: alreadyPresent })
-                SETEX_ASYNC(`${longUrl}`,20,JSON.stringify(alreadyPresent))
+                SETEX_ASYNC(`${longUrl}`,86400,JSON.stringify(alreadyPresent))
 
             }
         }
@@ -101,7 +101,7 @@ const getUrl = async function (req, res) {
             const isPresentUrl = await urlModel.findOne({ urlCode: urlCode }).select({ longUrl: 1, _id: 0 })
             if (!isPresentUrl) return res.status(404).send({ status: false, message: "(url not found) you can not redirect to longUrl with this urlCode" })
             res.status(302).redirect(isPresentUrl.longUrl)
-            await SETEX_ASYNC(`${urlCode}`,20,JSON.stringify(isPresentUrl.longUrl))
+            await SETEX_ASYNC(`${urlCode}`,86400,JSON.stringify(isPresentUrl.longUrl))
             
         }
         
