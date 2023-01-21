@@ -10,11 +10,11 @@ const {promisify}=require('util')
 // create connection to redis with the help javascript redis module
 
 const redisClient =redis.createClient(
-    15233,
-    "redis-15233.c212.ap-south-1-1.ec2.cloud.redislabs.com",
+    12989,
+    "redis-12989.c212.ap-south-1-1.ec2.cloud.redislabs.com",
     {no_ready_check:true}
 )
-redisClient.auth("PQmLfPPDFmkIgDvm4NV7yqYTaCJfNjpV",function(err){
+redisClient.auth("K7MZgZE8q0MYS6OriXS0mvXXaSr4SwTO",function(err){
     if(err) throw err
 })
 redisClient.on("connect",async function(){
@@ -24,7 +24,7 @@ redisClient.on("connect",async function(){
 
 // prepare function so that our redis module method return response in promise object, not by the call back function
 
-const SET_ASYNC =promisify(redisClient.SET).bind(redisClient)
+
 const GET_ASYNC =promisify(redisClient.GET).bind(redisClient)
 const SETEX_ASYNC=promisify(redisClient.SETEX).bind(redisClient)
 
@@ -100,6 +100,7 @@ const getUrl = async function (req, res) {
             console.log("i am not in cache")
             const isPresentUrl = await urlModel.findOne({ urlCode: urlCode }).select({ longUrl: 1, _id: 0 })
             if (!isPresentUrl) return res.status(404).send({ status: false, message: "(url not found) you can not redirect to longUrl with this urlCode" })
+            console.log(isPresentUrl.longUrl)
             res.status(302).redirect(isPresentUrl.longUrl)
             await SETEX_ASYNC(`${urlCode}`,86400,JSON.stringify(isPresentUrl.longUrl))
             
@@ -115,3 +116,6 @@ const getUrl = async function (req, res) {
 
 module.exports.createUrl = createUrl
 module.exports.getUrl = getUrl
+
+
+
